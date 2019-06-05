@@ -9,4 +9,5 @@ grammar/testData/diagnostics/**/*
 .gradle
 .pages
 build
-
+!docs/scripts/build
+!scripts/build

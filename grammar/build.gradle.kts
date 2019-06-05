@@ -9,10 +9,16 @@ plugins {
     `maven-publish`
 }
 
+buildscript {
+    dependencies {
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.41")
+    }
+}
+
+apply(plugin="kotlin")
+
 group = "org.jetbrains.kotlin.spec.grammar"
 version = "0.1"
-
-apply(plugin = "kotlin")
 
 val jar: Jar by tasks
 val archivePrefix = "kotlin-grammar-parser"
@@ -36,17 +42,11 @@ publishing {
 }
 
 java.sourceSets {
-    "main" {
+    "grammar-main" {
         java.srcDir("src/main")
     }
-    "test" {
+    "grammar-test" {
         java.srcDir("src/test")
-    }
-}
-
-buildscript {
-    dependencies {
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.21")
     }
 }
 
