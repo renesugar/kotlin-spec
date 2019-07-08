@@ -18,6 +18,11 @@ pluginManagement {
     }
 }
 
+val withGrammarProject: String? by settings
+
 include("docs")
-include("grammar")
 include("front-end")
+
+if (withGrammarProject?.toBoolean() != false) {
+    include("grammar")
+}
