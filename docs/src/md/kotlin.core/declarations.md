@@ -191,7 +191,7 @@ All these functions consider only data properties $\{dp_i\}$; e.g., your data cl
 
 Data classes have the following restrictions:
 
-* Data classes are final and cannot be inherited from;
+* Data classes are closed and cannot be [inherited][Inheritance] from;
 * Data classes must have a primary constructor with only property constructor parameters, which become data properties for the data class;
 * There must be at least one data property in the primary constructor.
 
@@ -243,10 +243,11 @@ Annotation classes have the following properties:
 - All the primary constructor parameters must use the property syntax;
 - They implicitly inherit `kotlin.Annotation` class (and cannot have any other base classes);
 - They cannot implement interfaces;
-- They are implicitly final and cannot be inherited from;
+- They are implicitly closed and cannot be inherited from;
 - They may not have any member functions, properties not declared in the primary constructor or any overriding declarations;
 - They cannot have companion objects;
 - They cannot have nested classes;
+- They cannot have type parameters;
 - The types of primary constructor parameters are limited to:
     - `kotlin.String`;
     - `kotlin.KClass`;
@@ -336,10 +337,10 @@ Functions have special *function types* which are covered in more detail [here][
 
 A simple function declaration consists of four main parts:
 
-* name $f$
-* parameter list $(p_1: P_1 = v_1, \ldots, p_n: P_n = v_n)$
-* return type $R$
-* body $b$
+* Name $f$;
+* Parameter list $(p_1: P_1 = v_1, \ldots, p_n: P_n = v_n)$;
+* Return type $R$;
+* Body $b$.
 
 and has a function type $f : (p_1: P_1, \ldots, p_n: P_n) \rightarrow R$.
 
@@ -349,7 +350,7 @@ A function may have zero or more parameters.
 
 A parameter may include a default value $v_i$, which is used if the corresponding argument is not specified in function invocation; $v_i$ must be an expression which evaluates to type $V <: P_i$.
 
-Return type $R$ is optional, if function body $b$ is present and may be inferred to have a valid type $B : B \not \equiv \mathtt{kotlin.Nothing}$, in which case $R \equiv B$.
+Return type $R$ is optional, if function body $b$ is present and may be inferred to have a valid type $B : B \not \equiv \Nothing$, in which case $R \equiv B$.
 In other cases return type $R$ must be specified explicitly.
 
 > As type `kotlin.Nothing` has a [special meaning][`kotlin.Nothing`] in Kotlin type system, it must be specified explicitly, to avoid spurious `kotlin.Nothing` function return types.
@@ -362,11 +363,11 @@ TODO: `expect` and `external` functions also do not have implementations
 
 A parameterized function declaration consists of five main parts.
 
-* name $f$
-* type parameter list $T_1, \ldots, T_m$
-* parameter list $(p_1: P_1 = v_1, \ldots, p_n: P_n = v_n)$
-* return type $R$
-* body $b$
+* Name $f$;
+* Type parameter list $T_1, \ldots, T_m$;
+* Parameter list $(p_1: P_1 = v_1, \ldots, p_n: P_n = v_n)$;
+* Return type $R$;
+* Body $b$.
 
 and extends the rules for a simple function declaration w.r.t. type parameter list. Further details are described [here][Declarations with type parameters].
 
@@ -382,7 +383,7 @@ fun main(args: Array<String>) {
 }
 ```
 
-TODO(Argument names are resolved in compile time)
+All the names of named parameters are resolved at compile-time, meaning that performing a call with a parameter name not used at declaration-site is a compiler error.
 
 If one wants to mix named and positional arguments, the argument list must conform to the following form: $P_1, \ldots, P_M, N_1, \ldots, N_Q$, where $P_i$ is a positional argument, $N_j$ is a named argument; i.e., positional arguments must precede all of the named ones.
 
@@ -650,7 +651,7 @@ The type of a delegated property may be omitted at the declaration site, meaning
 If this type is omitted, it is inferred as if it was assigned the value of its expansion.
 If this inference fails, it is a compile-time error.
 
-If there are no operator functions `getValue()`/`setValue` on the delegate expression, another possibility is considered: a *provided* delegate.
+If the delegate expression has a suitable operator function called `provideDelegate`, a *provided* delegate is used instead.
 The provided delegate is accessed using the following expansion:
 
 ```kotlin
@@ -684,7 +685,9 @@ where `provideDelegate` is a suitable operator function available using the rece
 As is the case with`setValue` and `getValue`,  `thisRef`  is a reference to the receiver of the property or `null` for local properties, but there is also a special case: for extension properties `thisRef` supplied to `provideDelegate` is `null`, while `thisRef` provided to `getValue` and `setValue` is the actual receiver.
 This is due to the fact that, during the creation of the property, no receiver is available.
 
-TODO: actually, it's still not that simple. Delegated extension properties do not save the object, but rather re-run the expression every single time
+For both provided and standard delegates, the generated delegate value is placed in the same context as its corresponding property.
+This means that for a class member property it will be a synthetic member, for a local property it is a local value in the same scope as the property and for top-level (both extension and non-extension) properties it will be a top-level value.
+This affects this value's lifetime in the same way normal value lifetime works.
 
 #### Extension property declaration
 
@@ -801,11 +804,30 @@ Type parameters of inline function declarations (and only those) can be declared
 A reified type parameter is a [runtime-available][Runtime-available types] type inside the function scope, see the corresponding section for details.
 Reified type parameters can only be substitued by other [runtime-available types][Runtime-available types] when using such functions.
 
+### Declaration visibility
+
+Each declaration has a visibility property relative to the scope it is declared in.
+By default, all the declarations are `public`, meaning that they can be accessed from any other scope their outer scope can be accessed from.
+Declarations may be also marked `public` explicitly.
+
+Declarations marked as `private` can only be accessed from the same scope they are declared in.
+For example, all `private` top-level declarations in a file may only be accessed by code from the same file.
+
+Declarations marked as `internal` may only be accessed from the same [module][Modules], treated as `public` from inside the module and as `private` from outside the module.
+
+Declarations in classifier declaration scope can also be declared `protected`, meaning that they can only be accessed from the same classifier type as well as any types [inheriting][Inheritance] from this type regardless of the scope they are declared in.
+
+> There is a certain restriction regarding `inline` functions that have a different visibility from entities they access.
+> In particular, an `inline` function cannot access entities with a less permitting visibility (i.e. `public inline` function accessing a `private` property).
+> There is one exception to this: a `public inline` function can access `internal` entities which are marked with a special builtin [annotation][Annotations] `@PublishedApi`.
+
 ### Declaration modifiers
 
 TODO(this is a stub)
 
 A member function of a classifier declaration may be declared `abstract`, `open` or `override`, which means that it can be (or is supposed to) be overriden in the classes derived from it (see the [inheritance section][Overriding] for details).
+
+TODO(declaration scope)
 
 TODO(`lateinit`)
 
