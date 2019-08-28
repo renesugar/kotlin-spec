@@ -36,6 +36,11 @@ java.sourceSets {
     }
 }
 
+tasks.create<Copy>("copyKatex") {
+    from("$buildDir/node_modules/katex/dist")
+    into("$buildDir/js/katex".also { File(it).mkdirs() })
+}
+
 tasks.withType<UnpackGradleDependenciesTask> {
     enabled = false
 }
@@ -76,6 +81,7 @@ kotlinFrontend {
     sourceMaps = true
 
     npm {
+        dependency("katex")
         dependency("jquery")
         dependency("kotlin-playground")
     }
