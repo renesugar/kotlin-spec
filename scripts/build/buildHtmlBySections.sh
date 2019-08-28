@@ -1,4 +1,7 @@
 source directories.sh
+source settings.sh
+
+init_settings "html"
 
 export PROJECT_DIR
 
@@ -10,7 +13,7 @@ TMP_DIR=$(pwd)/../${BUILD_DIRECTORY}/~tmp
 mkdir -p $TMP_DIR
 
 gpp -H ./index.md \
-| pandoc -H ./preamble.md -s -f markdown-raw_html+smart+tex_math_double_backslash -t json \
+| pandoc ${PREAMBLE_OPTIONS} ${COMMON_PANDOC_OPTIONS} -t json \
 | bash ${FILTERS_DIR}/processTodoFilter.sh html \
 | bash ${FILTERS_DIR}/markSentencesFilter.sh html \
 | bash ${FILTERS_DIR}/copyPasteFilter.sh html \
@@ -23,7 +26,7 @@ mkdir -p ../${BUILD_DIRECTORY}/html/sections
 
 for f in $TMP_DIR/*.json;
 do \
-pandoc $f -c ../${ASSETS_DIRECTORY}/css/main.css --katex=../${ASSETS_DIRECTORY}/js/katex/ -s -o ../${BUILD_DIRECTORY}/html/sections/"$(basename "$f" .json).html";
+pandoc $f ${HTML_ASSETS_OPTIONS} -s -o ../${BUILD_DIRECTORY}/html/sections/"$(basename "$f" .json).html";
 done
 
 rm -rf $TMP_DIR
