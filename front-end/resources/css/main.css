@@ -115,10 +115,6 @@ body {
         height: 100%;
     }
 
-    #TOC span .rolled {
-        background-color: #ff9686;
-    }
-
     #TOC.active {
         left: 0;
     }

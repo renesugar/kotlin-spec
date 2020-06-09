@@ -12,7 +12,6 @@ class SidebarViewer {
         private const val DOWN_ARROW_ICON = "./resources/images/down-arrow.png"
 
         private fun insertArrowIcon(element: JQuery) {
-            element.toggleClass("unrolled")
             element.append("""<img src="$RIGHT_ARROW_ICON" class="nav-icon">""")
 
         }
